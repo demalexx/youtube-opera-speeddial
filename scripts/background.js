@@ -51,8 +51,8 @@ function updateData() {
 
             var author = cur_item.querySelector('span.feed-item-owner a').getAttribute('title');
             var author_img_url = cur_item.querySelector('.feed-author-bubble-container .feed-item-author img').getAttribute('data-thumb');
-            var title = cur_item.querySelector('h4 a').getAttribute('title');
-            var thumb_url = cur_item.querySelector('.feed-item-thumb img').getAttribute('data-thumb');
+            var title = cur_item.querySelector('h3 a').getAttribute('title');
+            var thumb_url = cur_item.querySelector('.feed-item-main .video-thumb img').getAttribute('data-thumb');
             var duration = cur_item.querySelector('.context-data-item').getAttribute('data-context-item-time');
             var is_watched = Boolean(cur_item.querySelector('.feed-item-thumb.watched'));
 
