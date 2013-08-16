@@ -49,7 +49,7 @@ function updateData() {
         for (var i = 0; i < Math.min(items_els.length, 6); i++) {
             var cur_item = items_els[i];
 
-            var author = cur_item.querySelector('span.feed-item-owner a').getAttribute('title');
+            var author = cur_item.querySelector('.feed-author-bubble-container .feed-item-author img').getAttribute('alt');
             var author_img_url = cur_item.querySelector('.feed-author-bubble-container .feed-item-author img').getAttribute('data-thumb');
             var title = cur_item.querySelector('h3 a').getAttribute('title');
             var thumb_url = cur_item.querySelector('.feed-item-main .video-thumb img').getAttribute('data-thumb');

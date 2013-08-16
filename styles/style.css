@@ -46,6 +46,7 @@ body {
 
 #content table .video-thumb-container,
 #content table .video-thumb {
+    width: 89px;
     height: 50px;
 }
 
