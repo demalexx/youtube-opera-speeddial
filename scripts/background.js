@@ -42,10 +42,10 @@ function updateData() {
         var response_container = document.createElement('html');
         response_container.innerHTML = event.target.responseText;
 
-        var items_els = response_container.querySelectorAll('ul.feed-list li.feed-list-item');
+        var items_els = response_container.querySelectorAll('ul.feed-list li.feed-item-container');
         var items = [];
 
-        // There is room only for 7 items max
+        // There is room only for 7 items
         for (var i = 0; i < Math.min(items_els.length, 6); i++) {
             var cur_item = items_els[i];
 
@@ -54,7 +54,7 @@ function updateData() {
             var title = cur_item.querySelector('h3 a').getAttribute('title');
             var thumb_url = cur_item.querySelector('.feed-item-main .video-thumb img').getAttribute('data-thumb');
             var duration = cur_item.querySelector('.context-data-item').getAttribute('data-context-item-time');
-            var is_watched = Boolean(cur_item.querySelector('.feed-item-thumb.watched'));
+            var is_watched = Boolean(cur_item.querySelector('.watched-badge'));
 
             if (author_img_url.indexOf('//') == 0) {
                 author_img_url = 'http:' + author_img_url;
