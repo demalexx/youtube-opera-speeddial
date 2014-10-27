@@ -1,0 +1,24 @@
+{
+    "manifest_version": 2,
+    "name": "Youtube on speeddial",
+    "description": "Shows videos from Youtube subscriptions on speeddial",
+    "version": "0.6",
+    "developer": {
+        "name": "demalexx"
+    },
+    "background": {
+        "page": "index.html"
+    },
+    "icons": {
+        "128": "icons/extension-icon.png"
+    },
+    "permissions": [
+        "speeddial",
+        "*://www.youtube.com/feed/subscriptions",
+        "*://*.ytimg.com/*",
+        "*://*.ggpht.com/*"
+    ],
+    "speeddial": {
+        "url": "http://www.youtube.com/feed/subscriptions"
+    }
+}
