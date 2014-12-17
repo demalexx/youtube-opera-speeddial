@@ -1,7 +1,46 @@
 window.addEventListener('load', onLoad, false);
 
+// Populate selectors with default data.
+// selectors.json is main source of selectors.
+var SELECTORS = {
+    'items': 'ul li.feed-item-container',
+    'author': {
+        'css': '.branded-page-module-title-text'
+    },
+    'author_img_url': {
+        'css': '.branded-page-module-title-link img',
+        'attr': 'data-thumb'
+    },
+    'title': {
+        'css': 'h3.yt-lockup-title a'
+    },
+    'thumb_url': {
+        'css': 'a.yt-fluid-thumb-link img',
+        'attr': 'data-thumb'
+    },
+    'duration': {
+        'css': '.video-time'
+    },
+    'is_watched': {
+        'css': '.watched-badge',
+        'type': 'bool'
+    }
+};
+
 function onLoad() {
-    tryUpdateData();
+    chrome.storage.local.get('selectors', function(data) {
+        var selectors = data['selectors'];
+
+        if (selectors) {
+            SELECTORS = selectors;
+            console.log('Loaded selectors from storage');
+        }
+        else {
+            console.log('Using default selectors');
+        }
+
+        tryUpdateData();
+    });
 }
 
 function switch_mode(mode) {
@@ -42,19 +81,19 @@ function updateData() {
         var response_container = document.createElement('html');
         response_container.innerHTML = event.target.responseText;
 
-        var items_els = response_container.querySelectorAll('ul li.feed-item-container');
+        var items_els = executeSelector(response_container, 'items');
         var items = [];
 
         // There is room only for few items
         for (var i = 0; i < Math.min(items_els.length, 5); i++) {
             var cur_item = items_els[i];
 
-            var author = cur_item.querySelector('.branded-page-module-title-text').innerText;
-            var author_img_url = cur_item.querySelector('.branded-page-module-title-link img').getAttribute('data-thumb');
-            var title = cur_item.querySelector('h3 a[title]').getAttribute('title');
-            var thumb_url = cur_item.querySelector('a.yt-fluid-thumb-link img').getAttribute('data-thumb');
-            var duration = cur_item.querySelector('.video-time').innerText;
-            var is_watched = Boolean(cur_item.querySelector('.watched-badge'));
+            var author = executeSelector(cur_item, 'author');
+            var author_img_url = executeSelector(cur_item, 'author_img_url');
+            var title = executeSelector(cur_item, 'title');
+            var thumb_url = executeSelector(cur_item, 'thumb_url');
+            var duration = executeSelector(cur_item, 'duration');
+            var is_watched = executeSelector(cur_item, 'is_watched');
 
             if (author_img_url.indexOf('//') == 0) {
                 author_img_url = 'https:' + author_img_url;
@@ -115,6 +154,88 @@ function updateData() {
     xhr.addEventListener('load', loadCallback, false);
     xhr.open('GET', 'https://www.youtube.com/feed/subscriptions', true);
     xhr.send();
+}
+
+function loadSelectors() {
+    // Try to load selectors from external resource
+
+    console.log('Loading selectors');
+
+    function loadCallback(event) {
+        console.log('Selectors downloaded:', event.target.status);
+
+        try {
+            var selectors = JSON.parse(event.target.responseText);
+        }
+        catch (e) {
+            console.log('Error parsing selectors json: ' + e);
+            return;
+        }
+
+        SELECTORS = selectors;
+        chrome.storage.local.set({'selectors': selectors});
+    }
+
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 15000;
+    xhr.addEventListener('load', loadCallback, false);
+    xhr.open('GET', 'http://demalexx.github.io/youtube-opera-speeddial/selectors.json', true);
+    xhr.send();
+}
+
+function executeSelector(item, sel_key) {
+    // Use selector rules named `sel_key` to get data from `item`.
+    // If data can't be found it'll get new selectors from external resource
+
+    var sel_data = SELECTORS[sel_key];
+    var res;
+
+    var css;
+    var is_data_found = false;
+
+    if (typeof sel_data == 'string' || sel_data instanceof String) {
+        css = sel_data;
+        res = item.querySelectorAll(css);
+
+        // Most likely no items exist because selector failed. Then need
+        // to update them. It also could be because user isn't logged-in.
+        is_data_found = (res.length > 0);
+    }
+    else {
+        css = sel_data['css'];
+        var attr = sel_data['attr'];
+        var is_bool = (sel_data['type'] === 'bool');
+
+        var el = item.querySelector(css);
+
+        if (is_bool) {
+            return Boolean(el);
+        }
+
+        try {
+            if (attr) {
+                res = el.getAttribute(attr);
+            }
+            else {
+                res = el.innerText;
+            }
+
+            is_data_found = Boolean(res);
+        }
+        catch (e) {
+            is_data_found = false;
+        }
+    }
+
+    if (!is_data_found) {
+        var msg = "Selector can't find " + sel_key + ' (' + css + ')';
+        loadSelectors();
+
+        // Raise exception so caller method stops executing
+        throw msg;
+    }
+
+    return res;
 }
 
 function htmlEncode(text) {
