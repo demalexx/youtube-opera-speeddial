@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Youtube on speeddial",
     "description": "Shows videos from Youtube subscriptions on speeddial",
-    "version": "0.6",
+    "version": "0.7",
     "developer": {
         "name": "demalexx"
     },
@@ -14,6 +14,8 @@
     },
     "permissions": [
         "speeddial",
+        "storage",
+        "*://demalexx.github.io/youtube-opera-speeddial/selectors.json",
         "*://www.youtube.com/feed/subscriptions",
         "*://*.ytimg.com/*",
         "*://*.ggpht.com/*"

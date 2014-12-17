@@ -1,0 +1,24 @@
+{
+    "items": "ul li.feed-item-container",
+    "author": {
+        "css": ".branded-page-module-title-text"
+    },
+    "author_img_url": {
+        "css": ".branded-page-module-title-link img",
+        "attr": "data-thumb"
+    },
+    "title": {
+        "css": "h3.yt-lockup-title a"
+    },
+    "thumb_url": {
+        "css": "a.yt-fluid-thumb-link img",
+        "attr": "data-thumb"
+    },
+    "duration": {
+        "css": ".video-time"
+    },
+    "is_watched": {
+        "css": ".watched-badge",
+        "type": "bool"
+    }
+}
