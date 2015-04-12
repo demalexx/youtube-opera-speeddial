@@ -3,20 +3,20 @@ window.addEventListener('load', onLoad, false);
 // Populate selectors with default data.
 // selectors.json is main source of selectors.
 var SELECTORS = {
-    'items': 'ul li.feed-item-container',
+    'items': 'ol div.feed-item-container',
     'author': {
         'css': '.branded-page-module-title-text'
     },
     'author_img_url': {
-        'css': '.branded-page-module-title-link img',
-        'attr': 'data-thumb'
+        'css': '.branded-page-module-title-link .video-thumb img',
+        'attr': 'src'
     },
     'title': {
         'css': 'h3.yt-lockup-title a'
     },
     'thumb_url': {
-        'css': 'a.yt-fluid-thumb-link img',
-        'attr': 'data-thumb'
+        'css': '.expanded-shelf .video-thumb img',
+        'attr': 'src'
     },
     'duration': {
         'css': '.video-time'
@@ -29,15 +29,15 @@ var SELECTORS = {
 
 function onLoad() {
     chrome.storage.local.get('selectors', function(data) {
-        var selectors = data['selectors'];
-
-        if (selectors) {
-            SELECTORS = selectors;
-            console.log('Loaded selectors from storage');
-        }
-        else {
-            console.log('Using default selectors');
-        }
+        //var selectors = data['selectors'];
+        //
+        //if (selectors) {
+        //    SELECTORS = selectors;
+        //    console.log('Loaded selectors from storage');
+        //}
+        //else {
+        //    console.log('Using default selectors');
+        //}
 
         tryUpdateData();
     });
