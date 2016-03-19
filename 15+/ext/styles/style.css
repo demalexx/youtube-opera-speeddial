@@ -66,18 +66,24 @@ body {
     color: #474747;
 }
 
-#content table .title {
-    /*font-weight: bold;*/
-}
-
 #content table .duration {
     position: absolute;
-    right: 2px;
+    right: 1px;
     bottom: 2px;
     background-color: black;
     color: white;
+    padding-left: 1px;
+    padding-right: 1px;
+}
+
+#content table .duration.live {
+    border: 1px solid #ff5e56;
+    color: #ff5e56;
+    padding-left: 1px;
+    padding-right: 1px;
 }
 
 #content table td.border-bottom {
     border-bottom: 1px solid #cbdae2;
+    width: 73px;
 }

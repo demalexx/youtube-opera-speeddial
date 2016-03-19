@@ -2,7 +2,7 @@
     "manifest_version": 2,
     "name": "Youtube on speeddial",
     "description": "Shows videos from Youtube subscriptions on speeddial",
-    "version": "0.7",
+    "version": "0.8",
     "developer": {
         "name": "demalexx"
     },
@@ -21,6 +21,6 @@
         "*://*.ggpht.com/*"
     ],
     "speeddial": {
-        "url": "http://www.youtube.com/feed/subscriptions"
+        "url": "https://www.youtube.com/feed/subscriptions"
     }
 }

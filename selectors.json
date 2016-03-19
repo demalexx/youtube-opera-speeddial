@@ -1,21 +1,46 @@
 {
-    "items": "ol div.feed-item-container",
+    "items_list": ".feed-item-container",
+    "items_grid": ".yt-lockup-video",
+    "is_items_list": {
+        "css": ".feed-item-container .expanded-shelf",
+        "type": "bool"
+    },
     "author": {
-        "css": ".branded-page-module-title-text"
+        "css": ".yt-lockup-byline a"
     },
     "author_img_url": {
         "css": ".branded-page-module-title-link .video-thumb img",
         "attr": "src"
     },
+    "is_author_img_url": {
+        "css": ".branded-page-module-title-link .video-thumb img",
+        "type": "bool"
+    },
     "title": {
         "css": "h3.yt-lockup-title a"
     },
     "thumb_url": {
-        "css": ".expanded-shelf .video-thumb img",
+        "css": ".yt-lockup-video .video-thumb img",
         "attr": "src"
     },
     "duration": {
         "css": ".video-time"
+    },
+    "is_duration": {
+        "css": ".video-time",
+        "type": "bool"
+    },
+    "is_live": {
+        "css": ".yt-badge-live",
+        "type": "bool"
+    },
+    "scheduled_live": {
+        "css": ".yt-badge.localized-date",
+        "attr": "data-timestamp"
+    },
+    "is_scheduled_live": {
+        "css": ".yt-badge.localized-date",
+        "type": "bool"
     },
     "is_watched": {
         "css": ".watched-badge",
