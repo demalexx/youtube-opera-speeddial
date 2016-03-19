@@ -2,45 +2,59 @@ window.addEventListener('load', onLoad, false);
 
 // Populate selectors with default data.
 // selectors.json is main source of selectors.
+// This dict is just a copy of selectors.json.
 var SELECTORS = {
-    'items': 'ol div.feed-item-container',
-    'author': {
-        'css': '.branded-page-module-title-text'
+    "items_list": ".feed-item-container",
+    "items_grid": ".yt-lockup-video",
+    "is_items_list": {
+        "css": ".feed-item-container .expanded-shelf",
+        "type": "bool"
     },
-    'author_img_url': {
-        'css': '.branded-page-module-title-link .video-thumb img',
-        'attr': 'src'
+    "author": {
+        "css": ".yt-lockup-byline a"
     },
-    'title': {
-        'css': 'h3.yt-lockup-title a'
+    "author_img_url": {
+        "css": ".branded-page-module-title-link .video-thumb img",
+        "attr": "src"
     },
-    'thumb_url': {
-        'css': '.expanded-shelf .video-thumb img',
-        'attr': 'src'
+    "is_author_img_url": {
+        "css": ".branded-page-module-title-link .video-thumb img",
+        "type": "bool"
     },
-    'duration': {
-        'css': '.video-time'
+    "title": {
+        "css": "h3.yt-lockup-title a"
     },
-    'is_watched': {
-        'css': '.watched-badge',
-        'type': 'bool'
+    "thumb_url": {
+        "css": ".yt-lockup-video .video-thumb img",
+        "attr": "src"
+    },
+    "duration": {
+        "css": ".video-time"
+    },
+    "is_duration": {
+        "css": ".video-time",
+        "type": "bool"
+    },
+    "is_live": {
+        "css": ".yt-badge-live",
+        "type": "bool"
+    },
+    "scheduled_live": {
+        "css": ".yt-badge.localized-date",
+        "attr": "data-timestamp"
+    },
+    "is_scheduled_live": {
+        "css": ".yt-badge.localized-date",
+        "type": "bool"
+    },
+    "is_watched": {
+        "css": ".watched-badge",
+        "type": "bool"
     }
 };
 
 function onLoad() {
-    chrome.storage.local.get('selectors', function(data) {
-        //var selectors = data['selectors'];
-        //
-        //if (selectors) {
-        //    SELECTORS = selectors;
-        //    console.log('Loaded selectors from storage');
-        //}
-        //else {
-        //    console.log('Using default selectors');
-        //}
-
-        tryUpdateData();
-    });
+    tryUpdateData();
 }
 
 function switch_mode(mode) {
@@ -77,22 +91,72 @@ function tryUpdateData() {
 function updateData() {
     // Get data from Youtube and refresh SpeedDial content
 
-    function loadCallback(event) {
-        var response_container = document.createElement('html');
-        response_container.innerHTML = event.target.responseText;
+    // "subscriptions" URL without "flow" param returns last used layout.
+    // Skip "flow" param to avoid overriding user's layout.
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 15000;
+    xhr.addEventListener('load', loadCallback, false);
+    xhr.open('GET', 'https://www.youtube.com/feed/subscriptions');
+    xhr.responseType = 'document';
+    xhr.send();
 
-        var items_els = executeSelector(response_container, 'items');
+    function loadCallback(event) {
+        // With `xhr.responseType = 'document'` `responseXML` is parsed HTML
+        var response_container = event.target.responseXML;
+
+        var items_els;
+
+        // YouTube has 2 layouts - list and grid, process both
+        if (executeSelector(response_container, 'is_items_list')) {
+            items_els = executeSelector(response_container, 'items_list')
+        }
+        else {
+            items_els = executeSelector(response_container, 'items_grid')
+        }
         var items = [];
 
-        // There is room only for few items
+        // There is room only for few items on small speeddial block
         for (var i = 0; i < Math.min(items_els.length, 5); i++) {
             var cur_item = items_els[i];
 
             var author = executeSelector(cur_item, 'author');
-            var author_img_url = executeSelector(cur_item, 'author_img_url');
+
+            // Only list layout has channel image (author image)
+            var author_img_url = '';
+            if (executeSelector(cur_item, 'is_author_img_url')) {
+                author_img_url = executeSelector(cur_item, 'author_img_url');
+            }
             var title = executeSelector(cur_item, 'title');
             var thumb_url = executeSelector(cur_item, 'thumb_url');
-            var duration = executeSelector(cur_item, 'duration');
+
+            // Duration could be absent (live/scheduled live items)
+            var duration = '';
+            var is_live = false;
+            if (executeSelector(cur_item, 'is_duration')) {
+                duration = executeSelector(cur_item, 'duration');
+            }
+            else {
+                if (executeSelector(cur_item, 'is_live')) {
+                    duration = 'LIVE';
+                    is_live = true;
+                }
+                else if (executeSelector(cur_item, 'is_scheduled_live')) {
+                    var dt = new Date(
+                        parseInt(
+                            executeSelector(cur_item, 'scheduled_live')
+                        ) * 1000
+                    );
+
+                    duration = dt.toLocaleString(
+                        window.navigator.language, {
+                            hour12: false,
+                            weekday: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        }
+                    ).toUpperCase();
+                }
+            }
             var is_watched = executeSelector(cur_item, 'is_watched');
 
             if (author_img_url.indexOf('//') == 0) {
@@ -103,12 +167,15 @@ function updateData() {
                 thumb_url = 'https:' + thumb_url;
             }
 
-            items.push({'author': author,
-                        'author_img_url': author_img_url,
-                        'title': title,
-                        'thumb_url': thumb_url,
-                        'duration': duration,
-                        'is_watched': is_watched});
+            items.push({
+                'author': author,
+                'author_img_url': author_img_url,
+                'title': title,
+                'thumb_url': thumb_url,
+                'duration': duration,
+                'is_live': is_live,
+                'is_watched': is_watched
+            });
         }
 
         // Most likely user isn't logged-in
@@ -125,14 +192,16 @@ function updateData() {
             out_html +=     '<td rowspan="2" class="thumb-cell border-bottom ' + (cur_item['is_watched'] ? 'watched' : '') + '" rowspan="2">';
             out_html +=         '<div class="video-thumb-container">';
             out_html +=             '<img class="video-thumb" src="' + cur_item['thumb_url'] + '" />';
-            out_html +=             '<span class="duration">' + cur_item['duration'] + '</span>';
+            out_html +=             '<span class="duration' + (cur_item['is_live'] ? ' live' : '') + '">' + cur_item['duration'] + '</span>';
             out_html +=         '</div>';
             out_html +=     '</td>';
             out_html +=     '<td class="author-cell">';
             out_html +=         '<span class="author">' + htmlEncode(cur_item['author']) + '</span>';
             out_html +=     '</td>';
             out_html +=     '<td class="author-icon-cell">';
-            out_html +=         '<img class="author-icon" src="' + cur_item['author_img_url'] + '"/>';
+            if (cur_item['author_img_url']) {
+                out_html += '<img class="author-icon" src="' + cur_item['author_img_url'] + '"/>';
+            }
             out_html +=     '</td>';
             out_html += '</tr>';
 
@@ -148,39 +217,27 @@ function updateData() {
         output.innerHTML = out_html;
         switch_mode('i');
     }
-
-    var xhr = new XMLHttpRequest();
-    xhr.timeout = 15000;
-    xhr.addEventListener('load', loadCallback, false);
-    xhr.open('GET', 'https://www.youtube.com/feed/subscriptions', true);
-    xhr.send();
 }
 
 function loadSelectors() {
     // Try to load selectors from external resource
 
-    console.log('Loading selectors');
+    var xhr = new XMLHttpRequest();
+    xhr.timeout = 15000;
+    xhr.addEventListener('load', loadCallback, false);
+    xhr.open('GET', 'https://demalexx.github.io/youtube-opera-speeddial/selectors.json');
+    xhr.send();
 
     function loadCallback(event) {
-        console.log('Selectors downloaded:', event.target.status);
-
         try {
             var selectors = JSON.parse(event.target.responseText);
         }
         catch (e) {
-            console.log('Error parsing selectors json: ' + e);
             return;
         }
 
         SELECTORS = selectors;
-        chrome.storage.local.set({'selectors': selectors});
     }
-
-    var xhr = new XMLHttpRequest();
-    xhr.timeout = 15000;
-    xhr.addEventListener('load', loadCallback, false);
-    xhr.open('GET', 'http://demalexx.github.io/youtube-opera-speeddial/selectors.json', true);
-    xhr.send();
 }
 
 function executeSelector(item, sel_key) {
